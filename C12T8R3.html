@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>通用词汇测试生成器</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;line-height:1.6;background:#f4f4f9;color:#333;margin:0;padding:20px}
+.container{max-width:800px;margin:auto;background:#fff;padding:20px 30px;border-radius:8px;box-shadow:0 0 15px rgba(0,0,0,.1)}
+header{text-align:center;border-bottom:2px solid #e0e0e0;padding-bottom:10px;margin-bottom:20px}
+h1{margin:0;color:#4a4a4a}
+header p{margin:5px 0 0;color:#777}
+section{margin-bottom:30px}
+h2{color:#0056b3;border-bottom:1px solid #ddd;padding-bottom:5px}
+.question{margin-bottom:20px}
+.options label{display:block;margin-bottom:8px;cursor:pointer;padding:5px;border-radius:4px}
+.spelling-input{width:100%;max-width:250px;padding:8px;border:1px solid #ccc;border-radius:4px;font-size:1em}
+.show-hint-btn{margin-left:8px;font-size:.9em;padding:2px 6px}
+#submit-btn,#start-test-btn{display:block;width:100%;padding:15px;font-size:1.2em;font-weight:bold;color:#fff;background:#007bff;border:none;border-radius:5px;cursor:pointer;transition:background .3s;margin-top:20px}
+#submit-btn:hover,#start-test-btn:hover{background:#0056b3}
+#submit-btn:disabled{background:#6c757d;cursor:not-allowed}
+#results{display:none;text-align:center;margin-top:30px;padding:20px;border-radius:8px;background:#e9f7ef;color:#155724;border:1px solid #c3e6cb}
+.score-breakdown{margin-top:20px;text-align:left}
+.score-item{display:flex;justify-content:space-between;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed #ddd}
+.correct-answer{background:#d4edda;color:#155724;border-left:5px solid #28a745}
+.incorrect-answer{background:#f8d7da;color:#721c24;border-left:5px solid #dc3545}
+.correct-input{border-color:#28a745;background:#d4edda}
+.incorrect-input{border-color:#dc3545;background:#f8d7da}
+.correct-spelling{color:#28a745;font-weight:bold;margin-left:10px}
+.hidden{display:none}
+.instructions{background:#e8f4fd;border-left:4px solid #17a2b8;padding:15px;margin:20px 0;border-radius:4px}
+
+
+/* ========= 词汇学习页美化 ========= */
+#vocab-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;                      /* 卡片间距 */
+}
+.vocab-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 14px 18px;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;      /* 柔和边框 */
+    box-shadow: 0 2px 4px rgba(0,0,0,.04);
+    transition: transform .2s, box-shadow .2s;
+}
+.vocab-item:nth-child(odd) {
+    background: #f9fafb;            /* 隔行变色 */
+}
+.vocab-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,.06);
+}
+.vocab-word {
+    width: 200px;
+    font-weight: 700;
+    font-size: 1.15em;
+    color: #0056b3;                 /* 主题蓝 */
+    flex-shrink: 0;
+    margin-right: 20px;
+}
+.vocab-definition {
+    flex: 1;
+    color: #444;
+    line-height: 1.55;
+}
+
+/* ========= 新增：学生信息输入样式 ========= */
+#student-info-inputs {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 25px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #fcfcfc;
+}
+#student-info-inputs label {
+    font-weight: bold;
+    color: #333;
+}
+#student-info-inputs input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    flex: 1;
+    min-width: 100px;
+}
+/* ========= 结果页信息样式 ========= */
+.student-info-result {
+    padding: 10px 0;
+    margin-bottom: 20px;
+    border-bottom: 1px dashed #007bff;
+    font-size: 1.1em;
+}
+
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="vocab-page" class="page">
+    <header>
+      <h1 id="vocab-title"></h1>
+      <p id="vocab-subtitle"></p>
+    </header>
+    <div class="instructions">
+      <p><strong>学习说明：</strong>请先学习以下词汇及其英文解释，然后点击"开始测试"。</p>
+<p><strong>Instructions:</strong> Please study the following vocabulary words and their English definitions before starting the test.</p>
+    </div>
+    <section>
+      <h2>目标词汇 (Target Vocabulary)</h2>
+      <div id="vocab-list" class="vocab-list"></div>
+    </section>
+    <button id="start-test-btn">开始测试 (Start Test)</button>
+  </div>
+
+  <div id="test-page" class="page hidden">
+    <header>
+      <h1 id="test-title"></h1>
+      <p id="test-subtitle"></p>
+    </header>
+    <form id="quizForm">
+      
+      <div id="student-info-inputs">
+          <div>
+              <label for="studentName">姓名 (Name):</label>
+              <input type="text" id="studentName" required placeholder="请输入姓名">
+          </div>
+          <div>
+              <label for="studentClass">班级 (Class):</label>
+              <input type="text" id="studentClass" required placeholder="请输入班级/编号">
+          </div>
+      </div>
+      <section id="multiple-choice-section">
+        <h2>第一部分：词汇选择题（共<span id="mcq-count-mc">0</span>题，每题1分）</h2>
+      </section>
+      <section id="spelling-section">
+        <h2>第二部分：词汇拼写（共<span id="spelling-count-sp">0</span>题，每题1分）</h2>
+      </section>
+    </form>
+    
+    <button id="back-to-vocab-btn" style="display:block; width:100%; padding:10px; font-size:1.1em; font-weight:bold; color:#007bff; background:#e0f0ff; border:1px solid #007bff; border-radius:5px; cursor:pointer; transition:background .3s; margin-top:10px;">
+        ← 返回词汇学习 (Go back to Vocabulary List)
+    </button>
+    <button id="submit-btn">完成测试并评分 (Grade My Test)</button>
+    <div id="results"></div>
+  </div>
+</div>
+
+<script>
+// ================================
+// 配置与题库 - 独立文件，方便替换
+// ================================
+const testConfig = {
+    vocabTitle: "IELTS 12 T8 R3 词汇学习 & 测试",
+    vocabSubtitle: "Advanced Vocabulary From IELTS 12 T8 R3",
+    testTitle: "高级词汇综合测试",
+    testSubtitle: "Advanced Vocabulary Comprehensive Test"
+};
+
+
+const vocabularyList = [
+    {word: "scrutiny", definition: "close and critical examination or investigation"},
+    {word: "dispute", definition: "a disagreement or argument about something"},
+    {word: "emphasis", definition: "special importance or significance placed on something"},
+    {word: "board", definition: "the group of people who oversee a company or organization"},
+    {word: "compensation", definition: "payment or benefits given to someone for work or loss"},
+    {word: "governance", definition: "the way an organization or country is managed at the highest level"},
+    {word: "radical", definition: "thorough or far-reaching; departing from tradition"},
+    {word: "financial meltdown", definition: "a sudden and severe collapse of financial markets"},
+    {word: "prolong", definition: "to make something last longer"},
+    {word: "economic downturn", definition: "a period of reduced economic activity or recession"},
+    {word: "postmortem", definition: "analysis or discussion after an event to determine what went wrong"},
+    {word: "auditor", definition: "a person who checks financial accounts for accuracy"},
+    {word: "inquiry", definition: "an official investigation or examination"},
+    {word: "commentary", definition: "an explanation or interpretation of events or data"},
+    {word: "knock-on effect", definition: "a secondary or indirect consequence of an action"},
+    {word: "expense", definition: "the cost incurred or money spent"},
+    {word: "collaboration", definition: "working together with others to achieve a goal"},
+    {word: "tackle", definition: "to deal with or take action to solve a problem"},
+    {word: "dedicated", definition: "devoted to a task or purpose; committed"},
+    {word: "recruitment", definition: "the process of finding and hiring new employees"},
+    {word: "remuneration", definition: "payment for work done; salary or fees"},
+    {word: "sustainability", definition: "the ability to maintain ecological and economic balance over time"},
+    {word: "insatiable", definition: "impossible to satisfy"},
+    {word: "appetite", definition: "a strong desire or liking for something"},
+    {word: "profile", definition: "a short description or overview of someone or something"},
+    {word: "incentivize", definition: "to motivate through rewards or incentives"},
+    {word: "combat", definition: "to fight or take action to reduce or eliminate something"}
+];
+
+const multipleChoiceQuestions = [
+    {
+        question: "The CEO came under intense ______ after the financial scandal.",
+        answers: ["scrutiny", "collaboration", "expense", "profile"],
+        correct: "scrutiny"
+    },
+    {
+        question: "There is an ongoing ______ between the company and its former supplier.",
+        answers: ["emphasis", "dispute", "board", "compensation"],
+        correct: "dispute"
+    },
+    {
+        question: "The new policy places strong ______ on transparency.",
+        answers: ["emphasis", "governance", "prolong", "downturn"],
+        correct: "emphasis"
+    },
+    {
+        question: "Executive ______ includes salary, bonuses and stock options.",
+        answers: ["compensation", "remuneration", "recruitment", "expense"],
+        correct: "compensation"
+    },
+    {
+        question: "Good corporate ______ builds investor confidence.",
+        answers: ["governance", "meltdown", "profile", "knock-on effect"],
+        correct: "governance"
+    },
+    {
+        question: "The 2008 ______ led to global recession.",
+        answers: ["financial meltdown", "economic downturn", "postmortem", "collaboration"],
+        correct: "financial meltdown"
+    },
+    {
+        question: "The central bank acted to ______ the recession.",
+        answers: ["prolong", "combat", "profile", "expense"],
+        correct: "combat"
+    },
+    {
+        question: "An ______ into accounting errors was launched last week.",
+        answers: ["inquiry", "auditor", "commentary", "appetite"],
+        correct: "inquiry"
+    },
+    {
+        question: "The audit ______ revealed internal control weaknesses.",
+        answers: ["postmortem", "knock-on effect", "expense", "profile"],
+        correct: "postmortem"
+    },
+    {
+        question: "The economist's ______ explained the inflation spike.",
+        answers: ["commentary", "scrutiny", "dispute", "profile"],
+        correct: "commentary"
+    },
+    {
+        question: "Higher fuel prices had a ______ on transport costs.",
+        answers: ["knock-on effect", "economic downturn", "financial meltdown", "expense"],
+        correct: "knock-on effect"
+    },
+    {
+        question: "Cross-department ______ improved innovation.",
+        answers: ["collaboration", "recruitment", "dedicated", "tackle"],
+        correct: "collaboration"
+    },
+    {
+        question: "We must ______ climate risks proactively.",
+        answers: ["tackle", "prolong", "profile", "incentivize"],
+        correct: "tackle"
+    },
+    {
+        question: "A ______ team worked overnight on the project.",
+        answers: ["dedicated", "insatiable", "radical", "dispute"],
+        correct: "dedicated"
+    },
+    {
+        question: "______ of skilled workers remains challenging.",
+        answers: ["Recruitment", "Remuneration", "Sustainability", "Appetite"],
+        correct: "Recruitment"
+    },
+    {
+        question: "Competitive ______ helps attract top talent.",
+        answers: ["remuneration", "recruitment", "sustainability", "profile"],
+        correct: "remuneration"
+    },
+    {
+        question: "Investors increasingly value environmental ______.",
+        answers: ["sustainability", "insatiable", "appetite", "combat"],
+        correct: "sustainability"
+    },
+    {
+        question: "The market has an ______ appetite for new tech.",
+        answers: ["insatiable", "dedicated", "radical", "prolong"],
+        correct: "insatiable"
+    },
+    {
+        question: "We need a clear risk ______ for investors.",
+        answers: ["profile", "incentivize", "combat", "emphasis"],
+        correct: "profile"
+    },
+    {
+        question: "Bonus schemes ______ staff to exceed targets.",
+        answers: ["incentivize", "combat", "tackle", "prolong"],
+        correct: "incentivize"
+    }
+];
+
+const spellingQuestions = [
+    {
+        sentence: "The CEO came under intense s________ after the scandal. （审查）",
+        answer: "scrutiny",
+        hint: "s________"
+    },
+    {
+        sentence: "Good corporate g________ builds trust. （治理）",
+        answer: "governance",
+        hint: "g________"
+    },
+    {
+        sentence: "We must c________ climate risks. （抗击）",
+        answer: "combat",
+        hint: "c________"
+    },
+    {
+        sentence: "Cross-department c________ boosts innovation. （协作）",
+        answer: "collaboration",
+        hint: "c________"
+    },
+    {
+        sentence: "Competitive r________ attracts talent. （薪酬）",
+        answer: "remuneration",
+        hint: "r________"
+    }
+];
+</script>
+<script>
+/* ================================ 应用逻辑 ================================ */
+
+// 1. 强制滚动到顶部
+window.onload = function() {
+    window.scrollTo(0, 0); 
+    document.body.scrollTop = 0; 
+    document.documentElement.scrollTop = 0; 
+
+    setTimeout(() => {
+        window.scrollTo(0, 0);
+        document.body.scrollTop = 0;
+        document.documentElement.scrollTop = 0;
+    }, 100); 
+};
+
+/* Fisher-Yates 打乱  */
+const shuffle = arr => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } };
+
+// 状态和计时变量
+const correctAnswers = {};
+let startTime, isTestGraded = false;
+
+// 2. 检查 SessionStorage，恢复页面状态
+const vocabPage = document.getElementById('vocab-page');
+const testPage = document.getElementById('test-page');
+
+// =========================================================================
+// 【新增】作答状态存储与恢复函数 (包含姓名和班级)
+// =========================================================================
+
+function saveAnswers() {
+    const form = document.getElementById('quizForm');
+    const answers = {};
+    
+    // 存储学生信息
+    const studentName = document.getElementById('studentName');
+    const studentClass = document.getElementById('studentClass');
+    if (studentName) answers['studentName'] = studentName.value.trim();
+    if (studentClass) answers['studentClass'] = studentClass.value.trim();
+
+    // 存储选择题答案
+    multipleChoiceQuestions.forEach((_, idx) => {
+        const name = `q${idx+1}`;
+        const checked = form.querySelector(`input[name="${name}"]:checked`);
+        if (checked) {
+            answers[name] = checked.value;
+        }
+    });
+
+    // 存储拼写题答案
+    spellingQuestions.forEach((_, idx) => {
+        const id = `s${idx+1}`;
+        const input = document.getElementById(id);
+        if (input && input.value.trim() !== '') {
+            answers[id] = input.value.trim();
+        }
+    });
+
+    sessionStorage.setItem('testAnswers', JSON.stringify(answers));
+}
+
+function restoreAnswers() {
+    const savedAnswers = sessionStorage.getItem('testAnswers');
+    if (!savedAnswers) return;
+
+    const answers = JSON.parse(savedAnswers);
+    
+    // 恢复学生信息
+    const studentName = document.getElementById('studentName');
+    const studentClass = document.getElementById('studentClass');
+    if (studentName && answers['studentName']) studentName.value = answers['studentName'];
+    if (studentClass && answers['studentClass']) studentClass.value = answers['studentClass'];
+    
+    // 恢复选择题答案
+    Object.keys(answers).forEach(name => {
+        if (name.startsWith('q')) {
+            const input = document.querySelector(`input[name="${name}"][value="${answers[name]}"]`);
+            if (input) {
+                input.checked = true;
+            }
+        }
+        // 恢复拼写题答案
+        else if (name.startsWith('s')) {
+            const input = document.getElementById(name);
+            if (input) {
+                input.value = answers[name];
+            }
+        }
+    });
+}
+// =========================================================================
+
+if (sessionStorage.getItem('testStarted') === 'true') {
+    vocabPage.classList.add('hidden');
+    testPage.classList.remove('hidden');
+    // 如果是刷新回到测试页，重置计时器
+    startTime = new Date(); 
+    restoreAnswers(); // 切换时立即恢复答案
+} else {
+    // 默认显示学习页
+    vocabPage.classList.remove('hidden');
+    testPage.classList.add('hidden');
+}
+
+
+/* 页面加载时立即打乱  */
+if (typeof vocabularyList !== 'undefined') {
+    shuffle(vocabularyList);
+}
+shuffle(multipleChoiceQuestions);
+shuffle(spellingQuestions);
+
+
+/* -------- 词汇列表渲染 -------- */
+const vocabList = document.getElementById('vocab-list');
+// 假设 vocabularyList 在 vocab-data.js 中定义
+if (typeof vocabularyList !== 'undefined') {
+    vocabularyList.forEach(v => {
+      const item = document.createElement('div');
+      item.className = 'vocab-item';
+      item.innerHTML = `<div class="vocab-word">${v.word}</div><div class="vocab-definition">${v.definition}</div>`;
+      vocabList.appendChild(item);
+    });
+}
+
+
+/* -------- 选择题生成 -------- */
+const mcSection = document.getElementById('multiple-choice-section');
+multipleChoiceQuestions.forEach((q, idx) => {
+  const div = document.createElement('div');
+  div.className = 'question';
+  const qName = `q${idx+1}`;
+  div.innerHTML = `
+    <p>${idx+1}. ${q.question}</p>
+    <div class="options">
+      ${q.answers.map((ans, i) => `
+        <label for="${qName}_${i}">
+          <input type="radio" id="${qName}_${i}" name="${qName}" value="${['A','B','C','D'][i]}">
+          ${['A','B','C','D'][i]}. ${ans}
+        </label>`).join('')}
+    </div>`;
+  mcSection.appendChild(div);
+  const correctIndex = q.answers.indexOf(q.correct);
+  correctAnswers[qName] = ['A','B','C','D'][correctIndex];
+});
+
+/* -------- 拼写题生成 -------- */
+const spSection = document.getElementById('spelling-section');
+spellingQuestions.forEach((q, idx) => {
+  const div = document.createElement('div');
+  div.className = 'question';
+  const sId = `s${idx+1}`;
+  div.innerHTML = `
+    <label for="${sId}">${idx+1}. ${q.sentence.replace('_______', '<span class="spelling-hint">_______</span>')}</label>
+    <input type="text" id="${sId}" class="spelling-input">
+    <button type="button" class="show-hint-btn" data-for="${sId}">显示提示</button>
+    <span class="correct-spelling" style="display:none;">正确答案：${q.answer}</span>`;
+  spSection.appendChild(div);
+  correctAnswers[sId] = q.answer;
+});
+
+// =========================================================================
+// 【新增】监听输入事件，实时保存作答状态 (包括姓名和班级)
+// =========================================================================
+document.getElementById('quizForm').addEventListener('input', saveAnswers);
+document.getElementById('student-info-inputs').addEventListener('input', saveAnswers);
+// =========================================================================
+
+
+/* 1. 显示提示按钮 */
+document.querySelectorAll('.show-hint-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const input = document.getElementById(this.dataset.for);
+    const questionData = spellingQuestions.find((_, i) => `s${i+1}` === this.dataset.for);
+    if (questionData) {
+        input.placeholder = questionData.hint;
+        this.disabled = true;
+        this.textContent = '已显示';
+    }
+  });
+});
+
+/* 页面切换：开始测试 */
+document.getElementById('start-test-btn').addEventListener('click', () => {
+  // 设置 SessionStorage 标志
+  sessionStorage.setItem('testStarted', 'true');
+    
+  window.scrollTo({ top: 0, behavior: 'instant' });   
+  vocabPage.classList.add('hidden');
+  testPage.classList.remove('hidden');
+  startTime = new Date();
+  restoreAnswers(); // 确保从学习页进入测试页时恢复所有数据
+});
+
+/* 页面切换：返回学习页 */
+document.getElementById('back-to-vocab-btn').addEventListener('click', () => {
+    // 移除状态标志，确保下次回到测试页时，计时重新开始
+    sessionStorage.removeItem('testStarted'); 
+    sessionStorage.removeItem('testAnswers'); // 清除答案，重置状态
+    
+    // 切换页面
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    testPage.classList.add('hidden');
+    vocabPage.classList.remove('hidden');
+
+    // 清空结果区域，避免下次进入学习页时底部仍显示旧结果
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('submit-btn').textContent = '完成测试并评分 (Grade My Test)';
+});
+
+/* 离开页面时清除状态 */
+window.addEventListener('beforeunload', () => {
+    if (isTestGraded) {
+        sessionStorage.removeItem('testStarted');
+        sessionStorage.removeItem('testAnswers'); // 最终完成时清除答案
+    }
+});
+
+
+/* 评分 (已修改逻辑，包含姓名和班级展示) */
+document.getElementById('submit-btn').addEventListener('click', () => {
+    if (isTestGraded) return alert('测试已完成，请查看最终结果。');
+
+    // -------------------------------------------------------------------------
+    // 【修改点 2A】获取姓名和班级，并进行强制检查
+    // -------------------------------------------------------------------------
+    const studentNameInput = document.getElementById('studentName');
+    const studentClassInput = document.getElementById('studentClass');
+    const studentName = studentNameInput ? studentNameInput.value.trim() : 'N/A';
+    const studentClass = studentClassInput ? studentClassInput.value.trim() : 'N/A';
+    
+    // 强制输入检查
+    if (studentName === '' || studentClass === '') {
+        alert('请先输入你的姓名和班级才能评分！');
+        if (studentName === '') studentNameInput.focus();
+        else if (studentClass === '') studentClassInput.focus();
+        return;
+    }
+    // -------------------------------------------------------------------------
+
+    const end = new Date();
+    const seconds = Math.round((end - startTime) / 1000);
+    const min = Math.floor(seconds / 60), sec = seconds % 60;
+
+    const form = document.getElementById('quizForm');
+    let mcScore = 0;
+    let spScore = 0;
+    let unansweredCount = 0;
+
+    /* 判选择题 */
+    multipleChoiceQuestions.forEach((_, idx) => {
+        const name = `q${idx+1}`;
+        const questionDiv = form.elements[name][0].closest('.question'); 
+        const inputElements = form.elements[name];
+
+        if (questionDiv) {
+            Array.from(questionDiv.querySelectorAll('.options label')).forEach(l => l.classList.remove('correct-answer', 'incorrect-answer'));
+        }
+        
+        const checked = form.querySelector(`input[name="${name}"]:checked`);
+        
+        if (!checked) {
+            unansweredCount++;
+            return; 
+        }
+
+        Array.from(inputElements).forEach(input => input.disabled = true); 
+
+        const label = checked.parentElement;
+        if (checked.value === correctAnswers[name]) {
+            mcScore++; 
+            label.classList.add('correct-answer');
+        } else {
+            label.classList.add('incorrect-answer');
+            document.querySelector(`input[name="${name}"][value="${correctAnswers[name]}"]`).parentElement.classList.add('correct-answer');
+        }
+    });
+
+    /* 判拼写题 */
+    document.querySelectorAll('.correct-spelling').forEach(s => s.style.display = 'none'); 
+    spellingQuestions.forEach((_, idx) => {
+        const id = `s${idx+1}`;
+        const input = document.getElementById(id);
+        const user = input.value.trim();
+        
+        input.classList.remove('correct-input', 'incorrect-input');
+        
+        if (!user) {
+            unansweredCount++;
+            return; 
+        }
+        
+        input.disabled = true; 
+        const hintBtn = document.querySelector(`button[data-for="${id}"]`);
+        if (hintBtn) hintBtn.disabled = true; 
+
+        const correctAnswerVariants = correctAnswers[id].toLowerCase().split('/').map(ans => ans.trim());
+        
+        if (correctAnswerVariants.includes(user.toLowerCase())) {
+            spScore++; 
+            input.classList.add('correct-input');
+        } else {
+            input.classList.add('incorrect-input');
+            document.getElementById(id).nextElementSibling.nextElementSibling.style.display = 'inline'; 
+        }
+    });
+
+    const totalQuestions = multipleChoiceQuestions.length + spellingQuestions.length;
+    const answeredCount = totalQuestions - unansweredCount;
+    const currentScore = mcScore + spScore;
+    const res = document.getElementById('results');
+    
+    // -------------------------------------------------------------------------
+    // 【修改点 2B】创建要插入的 HTML 结果 (包含学生信息)
+    // -------------------------------------------------------------------------
+    const studentInfoHTML = `
+        <div class="student-info-result">
+            <p style="margin: 5px 0;"><strong>学生姓名 (Name):</strong> ${studentName}</p>
+            <p style="margin: 5px 0;"><strong>学生班级 (Class):</strong> ${studentClass}</p>
+        </div>
+    `;
+
+    // --- 结果和按钮状态更新 ---
+    if (unansweredCount === 0) {
+        // 所有题目均已完成
+        res.innerHTML = `
+            ${studentInfoHTML}
+            <h2>恭喜！你的最终总分：${currentScore} / ${totalQuestions}</h2>
+            <div class="score-breakdown">
+                <div class="score-item"><span>选择题</span><span>${mcScore} / ${multipleChoiceQuestions.length}</span></div>
+                <div class="score-item"><span>词汇拼写</span><span>${spScore} / ${spellingQuestions.length}</span></div>
+            </div>
+            <div class="time-taken">完成用时：${min} 分 ${sec} 秒</div>
+            <p style="color:#28a745; font-weight:bold;">所有题目已锁定，请查看你的最终表现。</p>
+        `;
+        isTestGraded = true;
+        sessionStorage.removeItem('testStarted'); // 最终完成，清除状态
+        sessionStorage.removeItem('testAnswers'); // 最终完成，清除答案
+        document.getElementById('submit-btn').textContent = '测试已完成 (Test Completed)';
+        document.getElementById('submit-btn').disabled = true;
+    } else {
+        // 仍有题目未完成
+        res.innerHTML = `
+            ${studentInfoHTML}
+            <h2>当前得分：${currentScore} / ${answeredCount} (已作答题目)</h2>
+            <p style="color:#ffc107; font-weight:bold;">⚠️ 还有 ${unansweredCount} 题未作答！已作答题目已被锁定，请继续完成剩余题目后，再次点击按钮评分。</p>
+            <div class="score-breakdown">
+                <div class="score-item"><span>选择题</span><span>${mcScore} / ${multipleChoiceQuestions.length}</span></div>
+                <div class="score-item"><span>词汇拼写</span><span>${spScore} / ${spellingQuestions.length}</span></div>
+            </div>
+            <div class="time-taken" style="margin-top: 10px;">本次用时计算至此：${min} 分 ${sec} 秒</div>
+        `;
+        document.getElementById('submit-btn').textContent = `继续评分/提交 (${unansweredCount} 题未完成)`;
+    }
+    // -------------------------------------------------------------------------
+
+    res.style.display = 'block';
+    res.scrollIntoView({ behavior: 'smooth' });
+});
+
+
+/* 计数与标题 */
+document.getElementById('mcq-count').textContent = multipleChoiceQuestions.length;
+document.getElementById('spelling-count').textContent = spellingQuestions.length;
+document.getElementById('mcq-count-mc').textContent = multipleChoiceQuestions.length; // 更新测试页计数
+document.getElementById('spelling-count-sp').textContent = spellingQuestions.length; // 更新测试页计数
+if (typeof testConfig !== 'undefined') {
+    Object.keys(testConfig).forEach(k => {
+      const el = document.getElementById(k.replace(/([A-Z])/g, '-$1').toLowerCase());
+      if (el) el.textContent = testConfig[k];
+    });
+}
+</script>
+</body>
+</html>
