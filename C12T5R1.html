@@ -97,6 +97,81 @@ h2{color:#0056b3;border-bottom:1px solid #ddd;padding-bottom:5px}
     font-size: 1.1em;
 }
 
+/* ================================================= */
+/* ========= 响应式优化：适用于手机等小屏幕 (Max-width: 600px) ========= */
+/* ================================================= */
+@media (max-width: 600px) {
+    body {
+        padding: 10px; /* 减小 body 边距 */
+    }
+
+    .container {
+        padding: 15px; /* 减小 container 内部边距 */
+        box-shadow: none; /* 在手机上移除阴影，显得更原生 */
+    }
+
+    /* 优化头部标题大小 */
+    h1 {
+        font-size: 1.5em;
+    }
+    h2 {
+        font-size: 1.2em;
+    }
+
+    /* 堆叠 '姓名' 和 '班级' 输入框 */
+    #student-info-inputs {
+        flex-direction: column;
+        gap: 15px;
+    }
+    #student-info-inputs > div {
+        width: 100%;
+    }
+
+    /* 堆叠词汇学习卡片 */
+    .vocab-item {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px 15px;
+        gap: 5px; /* 单词与定义之间的间距 */
+    }
+
+    .vocab-word {
+        width: 100%; /* 单词占据整行 */
+        margin-right: 0;
+        font-size: 1.1em;
+        margin-bottom: 5px;
+    }
+    
+    .vocab-definition {
+        font-size: 0.95em;
+    }
+    
+    /* 优化按钮大小 */
+    #submit-btn, #start-test-btn, #back-to-vocab-btn {
+        padding: 12px;
+        font-size: 1.1em;
+    }
+    
+    /* 优化拼写输入框和提示按钮 */
+    .spelling-input {
+        max-width: 100%; /* 输入框宽度铺满 */
+        margin-bottom: 10px; /* 增加底部间距 */
+    }
+
+    .show-hint-btn {
+        display: block; /* 提示按钮独占一行 */
+        margin-left: 0;
+        margin-top: 5px;
+        width: 100%;
+        padding: 8px 6px;
+    }
+    
+    /* 优化结果页分数详情 */
+    .score-breakdown {
+        font-size: 0.95em;
+    }
+}
+
 </style>
 </head>
 <body>
