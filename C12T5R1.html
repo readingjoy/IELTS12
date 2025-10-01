@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>通用词汇测试生成器</title>
+<script src="https://code.responsivevoice.org/responsivevoice.js?key=Fi7HhPlg"></script>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;line-height:1.6;background:#f4f4f9;color:#333;margin:0;padding:20px}
 .container{max-width:800px;margin:auto;background:#fff;padding:20px 30px;border-radius:8px;box-shadow:0 0 15px rgba(0,0,0,.1)}
@@ -66,6 +67,46 @@ h2{color:#0056b3;border-bottom:1px solid #ddd;padding-bottom:5px}
     flex: 1;
     color: #444;
     line-height: 1.55;
+}
+
+/* ========= 新增：单词发音按钮样式 ========= */
+.word-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 10px; /* 单词和按钮之间的间距 */
+}
+.pronounce-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 6px 8px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+}
+.pronounce-btn:hover {
+    background: #218838;
+    transform: scale(1.1);
+}
+.pronounce-btn:active {
+    transform: scale(0.95);
+}
+
+/* 调整词汇单词的样式，使其与按钮更好对齐 */
+.vocab-word {
+    width: auto; /* 改为自动宽度 */
+    font-weight: 700;
+    font-size: 1.15em;
+    color: #0056b3;
+    flex-shrink: 0;
+    margin-right: 0; /* 移除右边距 */
 }
 
 /* ========= 新增：学生信息输入样式 ========= */
@@ -170,7 +211,20 @@ h2{color:#0056b3;border-bottom:1px solid #ddd;padding-bottom:5px}
     .score-breakdown {
         font-size: 0.95em;
     }
+
+    /* 手机端优化发音按钮 */
+    .pronounce-btn {
+        padding: 6px;
+        font-size: 0.85em;
+        width: 28px;
+        height: 28px;
+    }
+    
+    .word-header {
+        gap: 8px; /* 手机端减小间距 */
+    }
 }
+
 
 </style>
 </head>
@@ -238,30 +292,30 @@ const testConfig = {
 
 
 const vocabularyList = [
-    {word: "remarkable material", definition: "an extraordinary substance with unique properties"},
-    {word: "elastic", definition: "able to resume normal shape after being stretched or compressed"},
-    {word: "fire-resistant", definition: "not easily set on fire or damaged by fire"},
-    {word: "buoyant", definition: "able to float in liquid or air"},
-    {word: "insulate", definition: "protect something by preventing heat, electricity, or sound from passing through"},
-    {word: "replicate", definition: "make an exact copy of; reproduce"},
-    {word: "succeed in", definition: "achieve the desired aim or result"},
-    {word: "spring back", definition: "return quickly to original shape or position after being bent, stretched, or pressed"},
-    {word: "thrive", definition: "grow or develop well or vigorously"},
-    {word: "moisture", definition: "water or other liquid diffused in a small quantity as vapor"},
-    {word: "nutrient", definition: "a substance that provides nourishment essential for growth"},
-    {word: "account for", definition: "constitute or make up a specified amount or proportion"},
-    {word: "in patience", definition: "with calmness and self-control"},
-    {word: "strip cork bark", definition: "remove the outer layer from cork trees"},
-    {word: "lever away", definition: "use a lever to remove or separate something"},
-    {word: "thermal insulation", definition: "the reduction of heat transfer between objects"},
-    {word: "ideal for", definition: "perfectly suitable for a particular purpose"},
-    {word: "concrete", definition: "a building material made from a mixture of cement, sand, and water"},
-    {word: "virtual monopoly", definition: "almost complete control of a product or service in a particular market"},
-    {word: "substitute", definition: "a person or thing acting or serving in place of another"},
-    {word: "in the case of", definition: "regarding the situation of"},
-    {word: "screw caps", definition: "caps that are twisted onto containers to seal them"},
-    {word: "desertification", definition: "the process by which fertile land becomes desert"},
-    {word: "promising", definition: "showing signs of future success or achievement"}
+    {word: "remarkable material", definition: "an extraordinary substance with unique properties", pronunciation: "remarkable material"},
+    {word: "elastic", definition: "able to resume normal shape after being stretched or compressed", pronunciation: "elastic"},
+    {word: "fire-resistant", definition: "not easily set on fire or damaged by fire", pronunciation: "fire resistant"},
+    {word: "buoyant", definition: "able to float in liquid or air", pronunciation: "buoyant"},
+    {word: "insulate", definition: "protect something by preventing heat, electricity, or sound from passing through", pronunciation: "insulate"},
+    {word: "replicate", definition: "make an exact copy of; reproduce", pronunciation: "replicate"},
+    {word: "succeed in", definition: "achieve the desired aim or result", pronunciation: "succeed in"},
+    {word: "spring back", definition: "return quickly to original shape or position after being bent, stretched, or pressed", pronunciation: "spring back"},
+    {word: "thrive", definition: "grow or develop well or vigorously", pronunciation: "thrive"},
+    {word: "moisture", definition: "water or other liquid diffused in a small quantity as vapor", pronunciation: "moisture"},
+    {word: "nutrient", definition: "a substance that provides nourishment essential for growth", pronunciation: "nutrient"},
+    {word: "account for", definition: "constitute or make up a specified amount or proportion", pronunciation: "account for"},
+    {word: "in patience", definition: "with calmness and self-control", pronunciation: "in patience"},
+    {word: "strip cork bark", definition: "remove the outer layer from cork trees", pronunciation: "strip cork bark"},
+    {word: "lever away", definition: "use a lever to remove or separate something", pronunciation: "lever away"},
+    {word: "thermal insulation", definition: "the reduction of heat transfer between objects", pronunciation: "thermal insulation"},
+    {word: "ideal for", definition: "perfectly suitable for a particular purpose", pronunciation: "ideal for"},
+    {word: "concrete", definition: "a building material made from a mixture of cement, sand, and water", pronunciation: "concrete"},
+    {word: "virtual monopoly", definition: "almost complete control of a product or service in a particular market", pronunciation: "virtual monopoly"},
+    {word: "substitute", definition: "a person or thing acting or serving in place of another", pronunciation: "substitute"},
+    {word: "in the case of", definition: "regarding the situation of", pronunciation: "in the case of"},
+    {word: "screw caps", definition: "caps that are twisted onto containers to seal them", pronunciation: "screw caps"},
+    {word: "desertification", definition: "the process by which fertile land becomes desert", pronunciation: "desertification"},
+    {word: "promising", definition: "showing signs of future success or achievement", pronunciation: "promising"}
 ];
 
 const multipleChoiceQuestions = [
@@ -292,7 +346,7 @@ const multipleChoiceQuestions = [
     },
     {
         question: "Scientists have attempted to _______ the unique properties of spider silk.",
-        answers: ["replicate", "succeed in", "spring back", "strip"],
+        answers: ["replicate", "succeed in", "spring back", "stripe"],
         correct: "replicate"
     },
     {
@@ -337,7 +391,7 @@ const multipleChoiceQuestions = [
     },
     {
         question: "Workers use special tools to _______ the cork from the tree trunk.",
-        answers: ["lever away", "strip", "insulate", "replicate"],
+        answers: ["lever away", "stripe", "insulate", "replicate"],
         correct: "lever away"
     }
 ];
@@ -491,7 +545,14 @@ if (typeof vocabularyList !== 'undefined') {
     vocabularyList.forEach(v => {
       const item = document.createElement('div');
       item.className = 'vocab-item';
-      item.innerHTML = `<div class="vocab-word">${v.word}</div><div class="vocab-definition">${v.definition}</div>`;
+      item.innerHTML = `
+        <div class="word-header">
+          <div class="vocab-word">${v.word}</div>
+          <button class="pronounce-btn" onclick="responsiveVoice.speak('${v.pronunciation}')" title="发音">
+            🔊
+          </button>
+        </div>
+        <div class="vocab-definition">${v.definition}</div>`;
       vocabList.appendChild(item);
     });
 }
